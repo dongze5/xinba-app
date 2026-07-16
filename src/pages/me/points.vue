@@ -41,7 +41,7 @@ const fmt = (num: number) => num.toLocaleString('en-US')
         <span class="text-sm font-semibold ml-1 opacity-90">积分</span>
       </view>
       <view class="mt-2 text-xs opacity-85 leading-normal">
-        生图 10 积分 / 张 · 可用于 AI 生图、智能翻译等创作
+        生图 10 积分 / 张 · 可用于智能生图、智能翻译等创作
       </view>
     </view>
 

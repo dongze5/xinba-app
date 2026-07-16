@@ -178,7 +178,6 @@ const onGetPhoneNumber = (e: any) => {
         <span class="ml-auto text-xs text-[#8c9199]">›</span>
       </view>
     </view>
-
   </view>
 </template>
 

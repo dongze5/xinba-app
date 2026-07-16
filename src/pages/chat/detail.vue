@@ -9,7 +9,7 @@ defineOptions({
 
 definePage({
   style: {
-    navigationBarTitleText: 'AI 聊天',
+    navigationBarTitleText: '智能聊天',
   },
 })
 
@@ -17,7 +17,7 @@ const appState = useAppStateStore()
 const { conversations } = storeToRefs(appState)
 
 // 路由参数
-const chatName = ref('AI 聊天')
+const chatName = ref('智能聊天')
 const inputValue = ref('')
 const toView = ref('')
 
@@ -25,7 +25,7 @@ const toView = ref('')
 const currentChat = computed(() => {
   return conversations.value[chatName.value] || {
     chips: ['帮我写文案', '生成一张图', '随便聊聊'],
-    msgs: [{ m: false, t: '你好！我是你的 AI 助手。今天想聊点什么，还是需要帮你生成内容？' }],
+    msgs: [{ m: false, t: '你好！我是你的智能助手。今天想聊点什么，还是需要帮你生成内容？' }],
   }
 })
 
@@ -85,7 +85,7 @@ const clickChip = (txt: string) => {
           class="flex items-end gap-2.5"
           :class="msg.m ? 'justify-end' : 'justify-start'"
         >
-          <!-- AI 头像 -->
+          <!-- 智能头像 -->
           <view
             v-if="!msg.m"
             class="h-9 w-9 flex items-center justify-center rounded-full text-white flex-shrink-0"

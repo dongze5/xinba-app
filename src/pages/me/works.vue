@@ -123,7 +123,7 @@ const isFaved = (id: string) => collected.value.includes(id)
         v-for="id in displayIds"
         :key="id"
         class="relative aspect-square flex items-center justify-center rounded-2xl text-white text-xs font-semibold overflow-hidden active:opacity-90 shadow-sm"
-        :style="{ backgroundColor: workMap[id]?.color }"
+        :style="{ background: 'linear-gradient(135deg, ' + (workMap[id]?.color || '#22D386') + ', #ffe5db)' }"
         @click="viewDetail(id)"
       >
         <span>{{ workMap[id]?.title }}</span>

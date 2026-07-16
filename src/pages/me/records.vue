@@ -36,7 +36,7 @@ const goRecharge = () => {
         <view class="i-carbon-wallet inline-block text-4xl" />
       </view>
       <view class="text-base font-bold text-[#1a1a1a] mb-1">还没有充值记录</view>
-      <view class="text-xs text-[#8c9199] mb-6 max-w-[200px]">充值积分，解锁更多 AI 创作</view>
+      <view class="text-xs text-[#8c9199] mb-6 max-w-[200px]">充值积分，解锁更多智能创作</view>
       <button
         class="h-9 px-6 rounded-2xl bg-[#22D386] text-white text-xs font-bold shadow-sm active:scale-95 flex items-center justify-center"
         @click="goRecharge"

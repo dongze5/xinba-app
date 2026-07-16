@@ -132,12 +132,12 @@ const generateFromWork = (promptText: string) => {
   <view v-if="workInfo" class="min-h-screen bg-[#f5f7f9] px-4 pt-4 pb-28">
     <!-- 主体区域 -->
     <view>
-      <!-- 大图展示 (高保真纯色色块) -->
+      <!-- 大图展示 (高保真渐变双色模拟) -->
       <view
         class="w-full aspect-square rounded-2xl flex items-center justify-center text-white text-lg font-bold shadow-sm"
-        :style="{ backgroundColor: workInfo.color }"
+        :style="{ background: 'linear-gradient(135deg, ' + (workInfo.color || '#22D386') + ', #ffe5db)' }"
       >
-        <span class="bg-black/35 px-4 py-1.5 rounded-2xl">{{ workInfo.title }}</span>
+        <span class="bg-black/20 px-4 py-1.5 rounded-2xl">{{ workInfo.title }}</span>
       </view>
 
       <!-- 作品详情介绍 -->

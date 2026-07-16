@@ -65,10 +65,10 @@ export const useAppStateStore = defineStore(
 
     // 对话列表
     const conversations = ref<Record<string, Conversation>>({
-      'AI 创作助手': {
+      '智能创作助手': {
         chips: ['再帮我写 3 个标题', '生成一张咖啡馆海报', '翻译成英文'],
         msgs: [
-          { m: false, t: '你好！我是你的 AI 助手。今天想聊点什么，还是需要帮你生成内容？' },
+          { m: false, t: '你好！我是你的智能助手。今天想聊点什么，还是需要帮你生成内容？' },
         ],
       },
       '文案写作': {
@@ -80,25 +80,25 @@ export const useAppStateStore = defineStore(
       '智能翻译': {
         chips: ['再翻译一段', '导出文档', '换种语言'],
         msgs: [
-          { m: false, t: '需要翻译什么内容呢？支持 30+ 种语言 🌍' },
+          { m: false, t: '需要翻译什么内容呢？支持 30+ 种语言～' },
         ],
       },
       '绘画工坊': {
         chips: ['换种风格', '提高分辨率', '生成同系列'],
         msgs: [
-          { m: false, t: '欢迎来到绘画工坊 🎨' },
+          { m: false, t: '欢迎来到绘画工坊' },
         ],
       },
-      'AI 绘画助手': {
+      '智能绘画助手': {
         chips: ['再生成 3 张', '换成插画风格', '生成高清图'],
         msgs: [
-          { m: false, t: '我是 AI 绘画助手，描述一下你想要画面吧 ✨' },
+          { m: false, t: '我是智能绘画助手，描述一下你想要画面吧～' },
         ],
       },
       '旅行规划师': {
         chips: ['加美食推荐', '生成路线图', '换成预算版'],
         msgs: [
-          { m: false, t: '想去哪儿玩？我帮你规划 🧳' },
+          { m: false, t: '想去哪儿玩？我帮你规划' },
         ],
       },
       '知识百科': {
@@ -110,7 +110,13 @@ export const useAppStateStore = defineStore(
       '策划脑暴': {
         chips: ['帮我给咖啡店起名', '写一份防晒霜营销方案', '新茶饮创意脑暴'],
         msgs: [
-          { m: false, t: '你好！我是你的 AI 策划脑暴助手 💡。我可以帮你进行品牌起名、撰写营销方案或进行创意脑暴。今天想创意脑暴点什么？' },
+          { m: false, t: '你好！我是你的智能策划脑暴助手。我可以帮你进行品牌起名、撰写营销方案或进行创意脑暴。今天想创意脑暴点什么？' },
+        ],
+      },
+      '周易八卦': {
+        chips: ['占卜今日运势', '帮我测算姻缘', '推演事业发展'],
+        msgs: [
+          { m: false, t: '你好！我是你的智能周易八卦推演助手。太极生两仪，两仪生四象，四象生八卦。请问您今日想占卜何事（如事业、感情、运势），或输入您的生辰八字，我将为您起卦解惑。' },
         ],
       },
     })
@@ -177,13 +183,13 @@ export const useAppStateStore = defineStore(
       myWorks.value.push(id)
     }
 
-    // 发送聊天消息，模拟自动回复
+        // 发送聊天消息，模拟自动回复
     const sendMessage = (convName: string, text: string) => {
       if (!conversations.value[convName]) {
         conversations.value[convName] = {
           chips: [],
           msgs: [
-            { m: false, t: '你好！我是你的 AI 助手。今天想聊点什么，还是需要帮你生成内容？' },
+            { m: false, t: '你好！我是你的智能助手。今天想聊点什么，还是需要帮你生成内容？' },
           ],
         }
       }
@@ -194,7 +200,7 @@ export const useAppStateStore = defineStore(
       // 移除原有的快捷推荐框，防止重复显示
       conv.chips = []
 
-      // 600ms后AI模拟回复
+      // 600ms后智能模拟回复
       setTimeout(() => {
         conv.msgs.push({
           m: false,
@@ -209,7 +215,7 @@ export const useAppStateStore = defineStore(
         conversations.value[newName] = {
           chips: ['随便聊聊', '帮我写文案', '生成一张图'],
           msgs: [
-            { m: false, t: '你好！我是你的 AI 助手。今天想聊点什么，还是需要帮你生成内容？' },
+            { m: false, t: '你好！我是你的智能助手。今天想聊点什么，还是需要帮你生成内容？' },
           ],
         }
       }

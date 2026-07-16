@@ -42,6 +42,8 @@ onLoad((options: any) => {
   }
 })
 
+import { ref, watch, nextTick } from 'vue'
+
 const curIdx = computed(() => tabbarStore.curIdx)
 const { onTouchStart, onTouchEnd } = useSwipeTab(() => tabbarStore.curIdx, tabbarStore)
 </script>
@@ -52,14 +54,44 @@ const { onTouchStart, onTouchEnd } = useSwipeTab(() => tabbarStore.curIdx, tabba
     @touchstart="onTouchStart"
     @touchend="onTouchEnd"
   >
-    <!-- 主滚动视图区域 -->
-    <scroll-view class="flex-1 min-h-0 w-full" scroll-y :show-scrollbar="false">
-      <!-- 采用 v-show 切换四大页面组件，完全避免页面销毁重挂载, 实现 0 延迟、零闪烁 -->
-      <HomeContent v-show="curIdx === 0" />
-      <ChatList v-show="curIdx === 1" />
-      <GenPage v-show="curIdx === 2" />
-      <MePage v-show="curIdx === 3" />
-      <!-- 统一的底部胶囊导航避空占位区 -->
+    <!-- 4个平行的局部滚动视图 (完全物理隔离滚动位置，绝对防止切换Tab时高度计算崩塌或重置归零) -->
+    <scroll-view
+      v-show="curIdx === 0"
+      class="flex-1 min-h-0 w-full"
+      scroll-y
+      :show-scrollbar="false"
+    >
+      <HomeContent />
+      <view class="h-28 w-full flex-shrink-0" />
+    </scroll-view>
+
+    <scroll-view
+      v-show="curIdx === 1"
+      class="flex-1 min-h-0 w-full"
+      scroll-y
+      :show-scrollbar="false"
+    >
+      <ChatList />
+      <view class="h-28 w-full flex-shrink-0" />
+    </scroll-view>
+
+    <scroll-view
+      v-show="curIdx === 2"
+      class="flex-1 min-h-0 w-full"
+      scroll-y
+      :show-scrollbar="false"
+    >
+      <GenPage />
+      <view class="h-28 w-full flex-shrink-0" />
+    </scroll-view>
+
+    <scroll-view
+      v-show="curIdx === 3"
+      class="flex-1 min-h-0 w-full"
+      scroll-y
+      :show-scrollbar="false"
+    >
+      <MePage />
       <view class="h-28 w-full flex-shrink-0" />
     </scroll-view>
 
