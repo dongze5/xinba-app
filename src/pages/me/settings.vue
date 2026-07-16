@@ -15,7 +15,7 @@ definePage({
 const userStore = useUserStore()
 const appState = useAppStateStore()
 
-const settingsList = ['账号与安全', '通知设置', '隐私设置', '关于我们', '清除缓存', '退出登录']
+const settingsList = ['账号与安全', '通知设置', '隐私设置', '关于我们', '清除缓存']
 
 const handleAction = (item: string) => {
   if (item === '关于我们') {
@@ -42,27 +42,6 @@ const handleAction = (item: string) => {
             uni.reLaunch({
               url: '/pages/index/index',
             })
-          }, 1000)
-        }
-      },
-    })
-  } else if (item === '退出登录') {
-    uni.showModal({
-      title: '提示',
-      content: '确认要退出当前登录账号吗？',
-      success: (res) => {
-        if (res.confirm) {
-          // 1. 清除 Pinia 内存及本地 Storage 中的用户信息
-          userStore.clearUserInfo()
-          
-          uni.showToast({
-            title: '已退出登录',
-            icon: 'none',
-          })
-          
-          // 2. 1秒后重新返回“我的”主页并刷新显示为未登录状态
-          setTimeout(() => {
-            uni.navigateBack()
           }, 1000)
         }
       },

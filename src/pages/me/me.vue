@@ -76,42 +76,24 @@ const onGetPhoneNumber = (e: any) => {
       <view class="text-2xl font-extrabold text-[#1a1a1a]">我的</view>
     </view>
 
-    <!-- 个人信息卡片 (点击去编辑资料) -->
-    <!-- 未登录状态：整张卡片配置为微信手机号授权大按钮，维持原有的精致风格 -->
-    <button
-      v-if="userInfo.userId === -1"
-      open-type="getPhoneNumber"
-      class="login-card-btn mt-3 flex items-center gap-3 rounded-2xl bg-white p-5 shadow-sm active:bg-gray-50 border-none text-left"
-      @getphonenumber="onGetPhoneNumber"
-    >
-      <image
-        src="/static/images/df_avatar.png"
-        class="h-18 w-18 mt-1 rounded-full bg-white"
-      />
-      <view class="flex-1">
-        <view class="text-xl font-extrabold text-[#1a1a1a]">点击登录</view>
-        <view class="mt-1 text-xs text-[#8c9199]">授权微信手机号，开启 AI 创意之旅</view>
-      </view>
-    </button>
-
-    <!-- 已登录状态：正常可点击跳转资料编辑页 -->
+    <!-- 个人信息卡片：采用静默登录，全天候展示精致卡片，点击即可去同步或编辑微信资料 -->
     <view
-      v-else
       class="mt-3 flex items-center gap-4 rounded-2xl bg-white p-5 shadow-sm active:bg-gray-50 cursor-pointer"
       @click="goPage('/pages/me/profile')"
     >
       <image
-        :src="userInfo.avatar"
+        :src="userInfo.avatar || '/static/images/df_avatar.png'"
         class="h-16 w-16 rounded-full bg-white border border-solid border-[#f0f2f5]"
       />
       <view class="flex-1 min-w-0">
         <view class="text-xl font-extrabold text-[#1a1a1a] truncate">
-          {{ userInfo.nickname }}
+          {{ userInfo.nickname || '欣叭探索者' }}
         </view>
-        <view class="mt-1 text-xs text-[#8c9199] truncate">
-          已创作 {{ myWorks.length }} 次
+        <view class="mt-1 text-xs text-[#8c9199] truncate flex items-center">
+          已创作 {{ myWorks.length }} 次 &nbsp;·&nbsp; 点击编辑资料
         </view>
       </view>
+      <span class="text-xs text-[#b2b8c2] font-semibold">›</span>
     </view>
 
     <!-- 积分钱包卡 (高对比扁平纯色背景, 无渐变) -->
@@ -201,18 +183,4 @@ const onGetPhoneNumber = (e: any) => {
 </template>
 
 <style scoped>
-/* 彻底清除微信手机号授权大卡片按钮的默认怪异样式 */
-.login-card-btn {
-  background-color: #ffffff !important;
-  line-height: normal !important;
-  padding: 20px !important; /* 对应 p-5 */
-  border: none !important;
-  outline: none !important;
-  display: flex !important;
-  align-items: center !important;
-  text-align: left !important;
-}
-.login-card-btn::after {
-  border: none !important;
-}
 </style>

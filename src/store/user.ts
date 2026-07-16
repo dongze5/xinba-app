@@ -40,6 +40,14 @@ export const useUserStore = defineStore(
       userInfo.value.avatar = '/static/images/avatar.png'
       console.log('手机一键快捷登录成功', userInfo.value)
     }
+    // 无感静默登录 (手机号留空，供后续绑定)
+    const loginSilently = () => {
+      userInfo.value.userId = 1
+      userInfo.value.username = ''
+      userInfo.value.nickname = '欣叭探索者'
+      userInfo.value.avatar = '/static/images/avatar.png'
+      console.log('静默登录成功，分配临时游客账号，等待用户绑定手机', userInfo.value)
+    }
     // 微信更新头像和昵称
     const updateProfile = (nickname: string, avatar: string) => {
       userInfo.value.nickname = nickname
@@ -68,6 +76,7 @@ export const useUserStore = defineStore(
       setUserInfo,
       setUserAvatar,
       loginByPhone,
+      loginSilently,
       updateProfile,
     }
   },

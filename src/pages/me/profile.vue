@@ -47,24 +47,26 @@ const onNicknameInput = (e: any) => {
   }
 }
 
-// 退出登录
-const handleLogout = () => {
-  uni.showModal({
-    title: '提示',
-    content: '确认退出当前登录状态吗？',
-    success: (res) => {
-      if (res.confirm) {
-        userStore.clearUserInfo()
-        uni.showToast({
-          title: '已退出登录',
-          icon: 'success',
-        })
-        setTimeout(() => {
-          uni.navigateBack()
-        }, 1000)
-      }
-    }
-  })
+
+
+// 微信手机号授权一键绑定回调
+const onGetPhoneNumber = (e: any) => {
+  console.log('微信手机号授权绑定回调', e)
+  if (e.detail && e.detail.code) {
+    const code = e.detail.code
+    // 模拟快捷绑定手机号并更新状态
+    const virtualPhone = `1380000${code.slice(-4)}`
+    userInfo.value.username = virtualPhone
+    uni.showToast({
+      title: '绑定手机成功！',
+      icon: 'success',
+    })
+  } else {
+    uni.showToast({
+      title: '已取消绑定',
+      icon: 'none',
+    })
+  }
 }
 
 // 保存个人资料
@@ -77,13 +79,13 @@ const handleSave = () => {
     })
     return
   }
-  
+
   userStore.updateProfile(nameVal, avatarUrl.value)
   uni.showToast({
     title: '资料更新成功',
     icon: 'success',
   })
-  
+
   setTimeout(() => {
     uni.navigateBack()
   }, 1000)
@@ -121,6 +123,23 @@ const handleSave = () => {
           @input="onNicknameInput"
         />
       </view>
+      <view class="flex items-center justify-between py-3 border-b border-b-solid border-b-[#f0f2f5]">
+        <text class="text-[15px] font-bold text-[#1a1a1a]">手机号码</text>
+        <text
+          v-if="userInfo.username && userInfo.username.startsWith('1') && userInfo.username.length === 11"
+          class="text-[15px] text-[#8c9199] font-semibold text-right"
+        >
+          {{ userInfo.username.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2') }}
+        </text>
+        <button
+          v-else
+          open-type="getPhoneNumber"
+          class="phone-bind-btn m-0 p-0 bg-transparent text-[15px] text-[#22D386] font-bold text-right outline-none border-none flex items-center justify-end"
+          @getphonenumber="onGetPhoneNumber"
+        >
+          点击绑定微信手机
+        </button>
+      </view>
       <view class="flex items-center justify-between py-3">
         <text class="text-[15px] font-bold text-[#1a1a1a]">创作统计</text>
         <text class="text-[14px] text-[#8c9199] font-semibold">
@@ -138,16 +157,6 @@ const handleSave = () => {
         保存个人资料
       </button>
     </view>
-
-    <!-- 退出登录按钮 -->
-    <view class="mt-3">
-      <button
-        class="w-full h-12 rounded-2xl bg-white border border-solid border-[#e4e6eb] text-[#f56c6c] text-[15px] font-bold shadow-sm flex items-center justify-center active:bg-gray-50"
-        @click="handleLogout"
-      >
-        退出当前登录
-      </button>
-    </view>
   </view>
 </template>
 
@@ -159,5 +168,15 @@ const handleSave = () => {
 }
 .avatar-btn::after {
   border: none;
+}
+.phone-bind-btn {
+  background-color: transparent !important;
+  line-height: normal !important;
+  border: none !important;
+  outline: none !important;
+  padding: 0 !important;
+}
+.phone-bind-btn::after {
+  border: none !important;
 }
 </style>

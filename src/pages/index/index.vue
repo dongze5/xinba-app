@@ -22,8 +22,18 @@ definePage({
   },
 })
 
-// 拦截路由携带的 tab 切换参数 (如从其它二级页面 reLaunch 回来时)
+import { useUserStore } from '@/store/user'
+
+const userStore = useUserStore()
+
+// 拦截路由携带的 tab 切换参数 (如从其它二级页面 reLaunch 回来时)，并在初始化时静默登录
 onLoad((options: any) => {
+  // 1. 无感静默登录：若检测为新用户，直接自动生成游客临时账号，无感开启服务
+  if (userStore.userInfo.userId === -1) {
+    userStore.loginSilently()
+  }
+
+  // 2. 路由携带的 Tab 指针解析
   if (options && options.tab !== undefined) {
     const tabIdx = parseInt(options.tab, 10)
     if (!isNaN(tabIdx) && tabIdx >= 0 && tabIdx < 4) {
