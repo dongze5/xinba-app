@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { useUserStore } from '@/store/user'
-import { useAppStateStore } from '@/store/appState'
 
 defineOptions({
   name: 'SettingsPage',
@@ -13,7 +12,6 @@ definePage({
 })
 
 const userStore = useUserStore()
-const appState = useAppStateStore()
 
 const settingsList = ['账号与安全', '通知设置', '隐私设置', '关于我们', '清除缓存']
 

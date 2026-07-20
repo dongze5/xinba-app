@@ -1,14 +1,18 @@
 <script lang="ts" setup>
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { useAppStateStore } from '@/store/appState'
+import { useWorksStore } from '@/store/works'
+import { useChatStore } from '@/store/chat'
+import { getChatColor } from '@/constants/chat'
 import { storeToRefs } from 'pinia'
 
 defineOptions({
   name: 'HomeContent',
 })
 
-const appState = useAppStateStore()
-const { workMap, conversations } = storeToRefs(appState)
+const worksStore = useWorksStore()
+const chatStore = useChatStore()
+const { workMap } = storeToRefs(worksStore)
+const { conversations } = storeToRefs(chatStore)
 
 const hotWorkIds = ['p1', 'p2', 'p3', 'p4']
 
@@ -92,17 +96,7 @@ const recentChats = computed(() => {
       // 必须有用户主动发送的消息才算聊过 (m === true)
       const hasInteractive = chat.msgs && chat.msgs.some(msg => msg.m === true)
 
-      const colorMap: Record<string, string> = {
-        '智能创作助手': '#22D386',
-        '文案写作': '#FF9F43',
-        '智能翻译': '#2F86FF',
-        '旅行规划师': '#FF6B6B',
-        '绘画工坊': '#41E09A',
-        '知识百科': '#18C97A',
-        '策划脑暴': '#FF6B6B',
-        '周易八卦': '#E5B26E',
-      }
-      const color = colorMap[name] || '#aab0b8'
+      const color = getChatColor(name)
 
       return {
         name,
@@ -140,12 +134,12 @@ const recentChats = computed(() => {
         </view>
       </view>
 
-      <!-- Hero 卡片 (高对比扁平纯色) -->
-      <view class="rounded-2xl bg-[#22D386] p-6 text-white">
-        <view class="text-2xl font-extrabold">灵感生图</view>
-        <view class="mt-2 text-sm opacity-90">一句话，画出你的小世界</view>
+      <!-- Hero 卡片 (高阶渐变毛玻璃纹理卡片，完美保留原本垂直布局) -->
+      <view class="cta-card">
+        <view class="text-2xl font-extrabold z-10 relative">灵感生图</view>
+        <view class="mt-2 text-sm opacity-90 z-10 relative">一句话，画出你的小世界</view>
         <view
-          class="mt-4 inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-bold text-[#22D386] cursor-pointer"
+          class="mt-4 inline-flex items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-bold text-[#07a857] cursor-pointer transition-all active:scale-95 z-10 relative"
           @click="switchTabIdx(2)"
         >
           立即体验 →
@@ -255,5 +249,27 @@ const recentChats = computed(() => {
   display: none;
   width: 0;
   height: 0;
+}
+
+.cta-card {
+  margin: 4px 0;
+  background: linear-gradient(135deg, #22D386, #22D386);
+  border-radius: 18px;
+  padding: 24px;
+  color: #fff;
+  box-shadow: 0 14px 26px -14px rgba(7, 160, 87, .4);
+  position: relative;
+  overflow: hidden;
+}
+
+.cta-card::after {
+  content: "";
+  position: absolute;
+  right: -30px;
+  top: -30px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .14);
 }
 </style>

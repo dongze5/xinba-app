@@ -66,12 +66,17 @@ export interface IUploadSuccessInfo {
   fileSize: number
 }
 /**
- * 更新用户信息
+ * 更新用户资料（对应后端 PUT /system/user/profile）
  */
-export interface IUpdateInfo {
-  id: number
-  name: string
-  sex: string
+export interface IUpdateProfile {
+  /** 用户昵称 */
+  nickName?: string
+  /** 邮箱 */
+  email?: string
+  /** 手机号 */
+  phonenumber?: string
+  /** 性别（0男 1女 2未知） */
+  sex?: string
 }
 /**
  * 更新用户信息

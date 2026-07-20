@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue'
-import { useAppStateStore } from '@/store/appState'
+import { useWorksStore } from '@/store/works'
 import { storeToRefs } from 'pinia'
 
 defineOptions({
@@ -13,14 +13,14 @@ definePage({
   },
 })
 
-const appState = useAppStateStore()
-const { workMap, collected } = storeToRefs(appState)
+const worksStore = useWorksStore()
+const { workMap, collected } = storeToRefs(worksStore)
 
 const workId = ref('')
 const fromSource = ref('hot')
 
 // 读取路由参数
-onLoad((options: any) => {
+onLoad((options: Record<string, string | undefined>) => {
   if (options && options.id) {
     workId.value = options.id
     fromSource.value = options.from || 'hot'
@@ -59,7 +59,7 @@ const handlePrimaryAction = () => {
 
   if (src === 'myworks' || src === 'gen') {
     // 动作：下载
-    appState.downloadWork(id)
+    worksStore.downloadWork(id)
     uni.showToast({
       title: '已保存到相册',
       icon: 'success',
@@ -69,7 +69,7 @@ const handlePrimaryAction = () => {
     generateFromWork(work.prompt || work.title)
   } else {
     // 动作：hot 切换收藏
-    appState.toggleCollect(id)
+    worksStore.toggleCollect(id)
     uni.showToast({
       title: isFaved.value ? '收藏成功' : '取消收藏',
       icon: 'none',
@@ -91,7 +91,7 @@ const handleSecondaryAction = () => {
       content: '确认要删除这件作品吗？',
       success: (res) => {
         if (res.confirm) {
-          appState.deleteWork(id)
+          worksStore.deleteWork(id)
           uni.showToast({
             title: '已删除',
             icon: 'success',
@@ -104,7 +104,7 @@ const handleSecondaryAction = () => {
     })
   } else if (src === 'collected' || src === 'fav') {
     // 动作：取消收藏
-    appState.toggleCollect(id)
+    worksStore.toggleCollect(id)
     uni.showToast({
       title: '已取消收藏',
       icon: 'success',
@@ -126,30 +126,65 @@ const generateFromWork = (promptText: string) => {
     url: '/pages/index/index?tab=2',
   })
 }
+
+// 预览大图
+const handlePreview = () => {
+  if (workInfo.value?.url) {
+    uni.previewImage({
+      urls: [workInfo.value.url],
+      current: 0
+    })
+  } else {
+    uni.showToast({
+      title: '点击可唤起原图画廊全屏预览 🔍',
+      icon: 'none'
+    })
+  }
+}
 </script>
 
 <template>
-  <view v-if="workInfo" class="min-h-screen bg-[#f5f7f9] px-4 pt-4 pb-28">
+  <view v-if="workInfo" class="min-h-screen bg-[#f5f7f9] pb-28">
     <!-- 主体区域 -->
     <view>
-      <!-- 大图展示 (高保真渐变双色模拟) -->
+      <!-- 大图定格撑满展示区 (直角直边 rounded-none，横向 100% 彻底顶格撑满，高宽比由 ratio 自适应，支持原生预览) -->
       <view
-        class="w-full aspect-square rounded-2xl flex items-center justify-center text-white text-lg font-bold shadow-sm"
-        :style="{ background: 'linear-gradient(135deg, ' + (workInfo.color || '#22D386') + ', #ffe5db)' }"
+        class="w-full rounded-none flex items-center justify-center text-white text-lg font-bold shadow-sm overflow-hidden relative"
+        :style="{
+          aspectRatio: workInfo.ratio ? workInfo.ratio.replace(':', '/') : '1/1',
+          background: 'linear-gradient(135deg, ' + (workInfo.color || '#22D386') + ', #ffe5db)'
+        }"
+        @click="handlePreview"
       >
-        <span class="bg-black/20 px-4 py-1.5 rounded-2xl">{{ workInfo.title }}</span>
+        <!-- A. 若有真实图片，使用 widthFix 宽度撑满，高度自适应展示 -->
+        <image
+          v-if="workInfo.url"
+          :src="workInfo.url"
+          mode="widthFix"
+          class="w-full"
+        />
+        <!-- B. 暂无图片地址时，展示直角极简微缩标识 -->
+        <view v-else class="flex flex-col items-center gap-3 py-16 text-center">
+          <view class="i-carbon-image text-4xl opacity-85" />
+          <span class="bg-black/25 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-extrabold tracking-wider">
+            {{ workInfo.ratio || '1:1' }} 画幅 · 点击预览
+          </span>
+        </view>
       </view>
 
-      <!-- 作品详情介绍 -->
-      <view class="mt-4 rounded-2xl bg-white p-5 shadow-sm">
-        <view class="text-lg font-extrabold text-[#1a1a1a]">{{ workInfo.title }}</view>
-        <view class="mt-1 text-xs text-[#8c9199]">{{ subText }}</view>
-      </view>
+      <!-- 文字内容限制安全排版区 (重新锁定 mx-4 边距) -->
+      <view class="px-4">
+        <!-- 作品详情介绍 -->
+        <view class="mt-4 rounded-2xl bg-white p-5 shadow-sm">
+          <view class="text-lg font-extrabold text-[#1a1a1a]">{{ workInfo.title }}</view>
+          <view class="mt-1 text-xs text-[#8c9199]">{{ subText }}</view>
+        </view>
 
-      <!-- 提示词展示 -->
-      <view class="mt-3 rounded-2xl bg-white p-5 shadow-sm">
-        <view class="text-sm font-bold text-[#8c9199] mb-2">生成提示词</view>
-        <view class="text-sm text-[#1a1a1a] leading-relaxed">{{ workInfo.prompt || '暂无描述' }}</view>
+        <!-- 提示词展示 -->
+        <view class="mt-3 rounded-2xl bg-white p-5 shadow-sm">
+          <view class="text-sm font-bold text-[#8c9199] mb-2">生成提示词</view>
+          <view class="text-sm text-[#1a1a1a] leading-relaxed">{{ workInfo.prompt || '暂无描述' }}</view>
+        </view>
       </view>
     </view>
 

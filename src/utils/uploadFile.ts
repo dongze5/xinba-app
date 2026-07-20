@@ -19,7 +19,7 @@
  */
 export const uploadFileUrl = {
   /** 用户头像上传地址 */
-  USER_AVATAR: `${import.meta.env.VITE_SERVER_BASEURL}/user/avatar`,
+  USER_AVATAR: `${import.meta.env.VITE_SERVER_BASEURL}/system/user/profile/avatar`,
 }
 
 /**
@@ -50,7 +50,9 @@ export interface UploadOptions {
   /** 选择图片的来源，album-相册，camera-相机 */
   sourceType?: Array<'album' | 'camera'>
   /** 文件大小限制，单位：MB */
-  maxSize?: number //
+  maxSize?: number
+  /** 上传文件对应的表单字段名，默认为 'file' */
+  fieldName?: string
   /** 上传进度回调函数 */
   onProgress?: (progress: number) => void
   /** 上传成功回调函数 */
@@ -91,6 +93,8 @@ export function useUpload<T = string>(url: string, formData: Record<string, any>
     sourceType = ['album', 'camera'],
     /** 文件大小限制（MB） */
     maxSize = 10,
+    /** 上传文件对应的表单字段名 */
+    fieldName = 'file',
     /** 进度回调 */
     onProgress,
     /** 成功回调 */
@@ -132,6 +136,7 @@ export function useUpload<T = string>(url: string, formData: Record<string, any>
         url,
         tempFilePath: directFilePath,
         formData,
+        fieldName,
         data,
         error,
         loading,
@@ -163,6 +168,7 @@ export function useUpload<T = string>(url: string, formData: Record<string, any>
           url,
           tempFilePath: file.tempFilePath,
           formData,
+          fieldName,
           data,
           error,
           loading,
@@ -197,6 +203,7 @@ export function useUpload<T = string>(url: string, formData: Record<string, any>
           url,
           tempFilePath: res.tempFilePaths[0],
           formData,
+          fieldName,
           data,
           error,
           loading,
@@ -230,6 +237,8 @@ interface UploadFileOptions<T> {
   tempFilePath: string
   /** 额外的表单数据 */
   formData: Record<string, any>
+  /** 上传文件对应的表单字段名 */
+  fieldName: string
   /** 上传成功后的响应数据 */
   data: Ref<T | undefined>
   /** 上传错误状态 */
@@ -257,6 +266,7 @@ function uploadFile<T>({
   url,
   tempFilePath,
   formData,
+  fieldName,
   data,
   error,
   loading,
@@ -271,7 +281,7 @@ function uploadFile<T>({
     const uploadTask = uni.uploadFile({
       url,
       filePath: tempFilePath,
-      name: 'file', // 文件对应的 key
+      name: fieldName,
       formData,
       header: {
         // H5环境下不需要手动设置Content-Type，让浏览器自动处理multipart格式

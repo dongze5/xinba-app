@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
-import { useAppStateStore } from '@/store/appState'
+import { useWalletStore } from '@/store/wallet'
 import { storeToRefs } from 'pinia'
 
 defineOptions({
@@ -13,8 +13,8 @@ definePage({
   },
 })
 
-const appState = useAppStateStore()
-const { ledger } = storeToRefs(appState)
+const walletStore = useWalletStore()
+const { ledger } = storeToRefs(walletStore)
 
 // 仅展示充值明细
 const rechargeList = computed(() => {

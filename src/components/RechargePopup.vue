@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { useAppStateStore } from '@/store/appState'
+import { useWalletStore } from '@/store/wallet'
 
-const appState = useAppStateStore()
+const walletStore = useWalletStore()
 
 const rechargeAmounts = [
   { p: 100, money: 6 },
@@ -17,8 +17,8 @@ const selectRecharge = (val: number) => {
 }
 
 const handlePay = () => {
-  appState.recharge(rechargeSelected.value)
-  appState.closeRecharge()
+  walletStore.recharge(rechargeSelected.value)
+  walletStore.closeRecharge()
   uni.showToast({
     title: `已成功充值 ${rechargeSelected.value} 积分`,
     icon: 'success',
@@ -28,16 +28,16 @@ const handlePay = () => {
 
 <template>
   <view
-    v-if="appState.showRecharge"
+    v-if="walletStore.showRecharge"
     class="fixed inset-0 z-[9999] bg-black/45 flex flex-col justify-end"
-    @click="appState.closeRecharge"
+    @click="walletStore.closeRecharge"
   >
     <view class="bg-white rounded-t-[22px] p-6 pb-8" style="padding-bottom: calc(24px + env(safe-area-inset-bottom));" @click.stop>
       <view class="relative text-center mb-5">
         <span class="text-lg font-extrabold">积分充值</span>
         <view
           class="absolute right-0 top-0.5 text-2xl leading-none text-[#aaa]"
-          @click="appState.closeRecharge"
+          @click="walletStore.closeRecharge"
         >
           ×
         </view>

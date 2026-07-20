@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue'
-import { useAppStateStore } from '@/store/appState'
+import { useWalletStore } from '@/store/wallet'
+import { useWorksStore } from '@/store/works'
 import { storeToRefs } from 'pinia'
 import { onShow } from '@dcloudio/uni-app'
 
@@ -14,8 +15,9 @@ definePage({
   },
 })
 
-const appState = useAppStateStore()
-const { points } = storeToRefs(appState)
+const walletStore = useWalletStore()
+const worksStore = useWorksStore()
+const { points } = storeToRefs(walletStore)
 
 // 表单状态
 const prompt = ref('')
@@ -73,7 +75,7 @@ const handleGenerate = () => {
 
   if (points.value < totalCost.value) {
     uni.showToast({ title: '积分不足，请先充值', icon: 'none' })
-    appState.openRecharge()
+    walletStore.openRecharge()
     return
   }
 
@@ -94,7 +96,7 @@ const handleGenerate = () => {
   currentGeneratedList.value = [...tempItems, ...currentGeneratedList.value]
 
   // 扣减用户积分
-  appState.deductPoints(totalCost.value, '智能生图')
+  walletStore.deductPoints(totalCost.value, '智能生图')
 
   // 2. 模拟 1.8 秒绘制延迟，随后将对应的占位卡片转为“生成成功”状态
   setTimeout(() => {
@@ -102,11 +104,11 @@ const handleGenerate = () => {
 
     tempItems.forEach((item, i) => {
       const finalId = `m_${Date.now()}_${i}`
-      const hue = (appState.myWorks.length + i) * 73 % 360
+      const hue = (worksStore.myWorks.length + i) * 73 % 360
       const finalColor = `hsl(${hue}, 65%, 70%)`
 
       // 写入持久化全局数据库中
-      appState.addGeneratedWork(finalId, `${item.prompt} · ${item.style}`, finalColor, item.prompt)
+      worksStore.addGeneratedWork(finalId, `${item.prompt} · ${item.style}`, finalColor, item.prompt, item.ratio)
 
       // 同步本地界面的临时项状态为成功
       const matchIndex = currentGeneratedList.value.findIndex(li => li.id === item.id)
@@ -164,7 +166,7 @@ const viewDetail = (id: string) => {
         v-model="prompt"
         placeholder="例如：清晨的咖啡馆，阳光透过窗户，绿植与点心，温柔的色调"
         placeholder-class="text-[#b2b8c2]"
-        maxlength="200"
+        :maxlength="200"
         class="w-full h-28 text-[15px] leading-relaxed text-[#1a1a1a] outline-none"
       />
       <view class="flex justify-between items-center mt-2 text-[10px] text-[#b2b8c2]">
@@ -214,7 +216,7 @@ const viewDetail = (id: string) => {
       >
         <view v-if="isGenerating" class="i-carbon-progress-bar-round animate-spin text-lg" />
 <!--        <view v-else class="i-carbon-star text-lg" />-->
-        <span>{{ isGenerating ? '生成中…' : `✦ 开始生成 消耗 ${totalCost} 积分` }}</span>
+        <span>{{ isGenerating ? '生成中…' : `✦ 开始生成 ${totalCost} 积分` }}</span>
       </button>
     </view>
 

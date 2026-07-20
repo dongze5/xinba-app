@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue'
-import { useAppStateStore } from '@/store/appState'
+import { useWorksStore } from '@/store/works'
 import { storeToRefs } from 'pinia'
 
 defineOptions({
@@ -13,13 +13,13 @@ definePage({
   },
 })
 
-const appState = useAppStateStore()
-const { workMap, myWorks, collected, downloads } = storeToRefs(appState)
+const worksStore = useWorksStore()
+const { workMap, myWorks, collected, downloads } = storeToRefs(worksStore)
 
 const pageType = ref('myworks')
 
 // 页面加载解析类型
-onLoad((options: any) => {
+onLoad((options: Record<string, string | undefined>) => {
   if (options && options.type) {
     pageType.value = options.type
     let title = '作品列表'

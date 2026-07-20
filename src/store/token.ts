@@ -50,19 +50,28 @@ export const useTokenStore = defineStore(
     // 设置用户信息
     const setTokenInfo = (val: IAuthLoginRes) => {
       updateNowTime()
-      tokenInfo.value = val
+      
+      const adaptedVal = { ...val } as IAuthLoginRes & { access_token?: string, expire_in?: number }
+      if (adaptedVal.access_token && !(adaptedVal as any).token) {
+        (adaptedVal as any).token = adaptedVal.access_token
+      }
+      if (adaptedVal.expire_in && !(adaptedVal as any).expiresIn) {
+        (adaptedVal as any).expiresIn = adaptedVal.expire_in
+      }
+      
+      tokenInfo.value = adaptedVal
 
       // 计算并存储过期时间
       const now = Date.now()
-      if (isSingleTokenRes(val)) {
+      if (isSingleTokenRes(adaptedVal)) {
         // 单token模式
-        const expireTime = now + val.expiresIn * 1000
+        const expireTime = now + adaptedVal.expiresIn * 1000
         uni.setStorageSync('accessTokenExpireTime', expireTime)
       }
-      else if (isDoubleTokenRes(val)) {
+      else if (isDoubleTokenRes(adaptedVal)) {
         // 双token模式
-        const accessExpireTime = now + val.accessExpiresIn * 1000
-        const refreshExpireTime = now + val.refreshExpiresIn * 1000
+        const accessExpireTime = now + adaptedVal.accessExpiresIn * 1000
+        const refreshExpireTime = now + adaptedVal.refreshExpiresIn * 1000
         uni.setStorageSync('accessTokenExpireTime', accessExpireTime)
         uni.setStorageSync('refreshTokenExpireTime', refreshExpireTime)
       }
@@ -129,10 +138,6 @@ export const useTokenStore = defineStore(
       }
       catch (error) {
         console.error('登录失败:', error)
-        uni.showToast({
-          title: '登录失败，请重试',
-          icon: 'error',
-        })
         throw error
       }
       finally {
@@ -162,10 +167,6 @@ export const useTokenStore = defineStore(
       }
       catch (error) {
         console.error('微信登录失败:', error)
-        uni.showToast({
-          title: '微信登录失败，请重试',
-          icon: 'error',
-        })
         throw error
       }
       finally {
@@ -177,25 +178,21 @@ export const useTokenStore = defineStore(
      * 退出登录 并 删除用户信息
      */
     const logout = async () => {
+      // 先清除本地缓存和状态（必须在调用后端注销 API 之前），防止 _logout 请求再次 401 触发死循环
+      updateNowTime()
+      uni.removeStorageSync('accessTokenExpireTime')
+      uni.removeStorageSync('refreshTokenExpireTime')
+      console.log('退出登录-清除用户信息')
+      tokenInfo.value = { ...tokenInfoState }
+      uni.removeStorageSync('token')
+      const userStore = useUserStore()
+      userStore.clearUserInfo()
+
       try {
-        // TODO 实现自己的退出登录逻辑
         await _logout()
       }
       catch (error) {
         console.error('退出登录失败:', error)
-      }
-      finally {
-        updateNowTime()
-
-        // 无论成功失败，都需要清除本地token信息
-        // 清除存储的过期时间
-        uni.removeStorageSync('accessTokenExpireTime')
-        uni.removeStorageSync('refreshTokenExpireTime')
-        console.log('退出登录-清除用户信息')
-        tokenInfo.value = { ...tokenInfoState }
-        uni.removeStorageSync('token')
-        const userStore = useUserStore()
-        userStore.clearUserInfo()
       }
     }
 
@@ -270,7 +267,6 @@ export const useTokenStore = defineStore(
      * 建议这样使用tokenStore.updateNowTime().hasLogin
      */
     const hasValidLogin = computed(() => {
-      console.log('hasValidLogin', hasLoginInfo.value, !isTokenExpired.value)
       return hasLoginInfo.value && !isTokenExpired.value
     })
 

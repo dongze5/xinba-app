@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { computed } from 'vue'
-import { useAppStateStore } from '@/store/appState'
+import { useChatStore } from '@/store/chat'
+import { getChatColor } from '@/constants/chat'
 import { storeToRefs } from 'pinia'
 import { tabbarStore } from '@/tabbar/store'
 
@@ -14,8 +15,8 @@ definePage({
   },
 })
 
-const appState = useAppStateStore()
-const { conversations } = storeToRefs(appState)
+const chatStore = useChatStore()
+const { conversations } = storeToRefs(chatStore)
 
 // 动态从 Pinia store 的 conversations 映射出最近的聊天记录列表
 const chatList = computed(() => {
@@ -27,18 +28,8 @@ const chatList = computed(() => {
       // 必须有用户主动发送的消息才算聊过 (m === true)
       const hasInteractive = chat.msgs && chat.msgs.some(msg => msg.m === true)
 
-      // 会话图标底色预设（规避紫色，保持高阶扁平调性）
-      const colorMap: Record<string, string> = {
-        '智能创作助手': '#22D386',
-        '文案写作': '#FF9F43',
-        '智能翻译': '#2F86FF',
-        '旅行规划师': '#FF6B6B',
-        '绘画工坊': '#41E09A',
-        '知识百科': '#18C97A',
-      }
-
-      // 根据会话名字哈希出固定色，或使用预设色
-      const color = colorMap[name] || `hsl(${Math.abs(name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)) % 360}, 75%, 60%)`
+      // 根据会话名字获取预设色或哈希生成色
+      const color = getChatColor(name)
 
       return {
         name,
@@ -69,7 +60,7 @@ const recommendAssistants = [
 
 // 一键创建并开启推荐的聊天会话
 const startRecommendedChat = (name: string) => {
-  appState.initConversation(name)
+  chatStore.initConversation(name)
   uni.navigateTo({
     url: `/pages/chat/detail?name=${encodeURIComponent(name)}`
   })

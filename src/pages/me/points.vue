@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { useAppStateStore } from '@/store/appState'
+import { useWalletStore } from '@/store/wallet'
 import { storeToRefs } from 'pinia'
 import RechargePopup from '@/components/RechargePopup.vue'
 
@@ -14,8 +14,8 @@ definePage({
   },
 })
 
-const appState = useAppStateStore()
-const { points, ledger } = storeToRefs(appState)
+const walletStore = useWalletStore()
+const { points, ledger } = storeToRefs(walletStore)
 
 
 
@@ -31,7 +31,7 @@ const fmt = (num: number) => num.toLocaleString('en-US')
         <span class="text-sm opacity-90">我的积分</span>
         <button
           class="h-7 bg-white/20 text-white rounded-[16px] px-3.5 text-xs font-bold active:bg-white/30 flex items-center justify-center m-0"
-          @click="appState.openRecharge()"
+          @click="walletStore.openRecharge()"
         >
           充值
         </button>
@@ -57,7 +57,7 @@ const fmt = (num: number) => num.toLocaleString('en-US')
       <view class="text-xs text-[#8c9199] mb-4 max-w-[200px]">生图或充值后，记录会显示在这里</view>
       <button
         class="h-9 px-6 rounded-2xl bg-[#22D386] text-white text-xs font-bold shadow-sm active:scale-95 flex items-center justify-center"
-        @click="appState.openRecharge()"
+        @click="walletStore.openRecharge()"
       >
         去充值
       </button>

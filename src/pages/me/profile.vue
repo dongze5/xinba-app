@@ -1,8 +1,10 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { useAppStateStore } from '@/store/appState'
 import { storeToRefs } from 'pinia'
 import { useUserStore } from '@/store/user'
+import { useWorksStore } from '@/store/works'
+import { bindPhone, updateProfile } from '@/api/login'
+import { uploadFileUrl } from '@/utils/uploadFile'
 
 defineOptions({
   name: 'ProfilePage',
@@ -14,8 +16,8 @@ definePage({
   },
 })
 
-const appState = useAppStateStore()
-const { myWorks } = storeToRefs(appState)
+const worksStore = useWorksStore()
+const { myWorks } = storeToRefs(worksStore)
 
 const userStore = useUserStore()
 const { userInfo } = storeToRefs(userStore)
@@ -23,72 +25,132 @@ const { userInfo } = storeToRefs(userStore)
 // 表单响应式数据
 const nickname = ref(userInfo.value.nickname || '')
 const avatarUrl = ref(userInfo.value.avatar || '/static/images/avatar.png')
+/** 标记头像是否为新选择的临时文件（需要上传） */
+const avatarChanged = ref(false)
+/** 保存中状态 */
+const saving = ref(false)
 
 // 微信头像授权回调
 const onChooseAvatar = (e: any) => {
-  console.log('微信头像授权回调', e)
-  if (e.detail && e.detail.avatarUrl) {
+  if (e.detail?.avatarUrl) {
     avatarUrl.value = e.detail.avatarUrl
-    console.log('成功获取微信临时头像路径: ', avatarUrl.value)
+    avatarChanged.value = true
   }
 }
 
 // 微信昵称输入与失去焦点回调
 const onNicknameBlur = (e: any) => {
-  if (e.detail && e.detail.value) {
+  if (e.detail?.value) {
     nickname.value = e.detail.value
-    console.log('昵称 blur 更新: ', nickname.value)
   }
 }
 
 const onNicknameInput = (e: any) => {
-  if (e.detail && e.detail.value) {
+  if (e.detail?.value) {
     nickname.value = e.detail.value
   }
 }
 
-
-
 // 微信手机号授权一键绑定回调
-const onGetPhoneNumber = (e: any) => {
-  console.log('微信手机号授权绑定回调', e)
-  if (e.detail && e.detail.code) {
-    const code = e.detail.code
-    // 模拟快捷绑定手机号并更新状态
-    const virtualPhone = `1380000${code.slice(-4)}`
-    userInfo.value.username = virtualPhone
-    uni.showToast({
-      title: '绑定手机成功！',
-      icon: 'success',
-    })
-  } else {
-    uni.showToast({
-      title: '已取消绑定',
-      icon: 'none',
-    })
+const bindingPhone = ref(false)
+const onGetPhoneNumber = async (e: any) => {
+  console.log('[bindPhone] getPhoneNumber 回调完整数据:', JSON.stringify(e.detail))
+  const { code, errMsg } = e.detail || {}
+  if (code) {
+    if (bindingPhone.value) return
+    bindingPhone.value = true
+    try {
+      await bindPhone(code)
+      // 绑定成功后刷新用户信息（后端已写入手机号）
+      await userStore.fetchUserInfo()
+      uni.showToast({ title: '绑定手机成功！', icon: 'success' })
+    }
+    catch (err: any) {
+      uni.showToast({ title: err?.message || '绑定失败，请重试', icon: 'none' })
+    }
+    finally {
+      bindingPhone.value = false
+    }
+  }
+  else if (errMsg?.includes('deny') || errMsg?.includes('cancel')) {
+    uni.showToast({ title: '已取消绑定', icon: 'none' })
+  }
+  else {
+    // 个人主体小程序无 getPhoneNumber 权限，需企业认证
+    uni.showToast({ title: '暂不支持，需企业认证后开放', icon: 'none' })
   }
 }
 
+/**
+ * 上传头像临时文件到服务器
+ * @returns 服务器返回的永久头像 URL
+ */
+function uploadAvatar(tempFilePath: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    uni.uploadFile({
+      url: uploadFileUrl.USER_AVATAR,
+      filePath: tempFilePath,
+      name: 'avatarfile',
+      header: {
+        // #ifndef H5
+        'Content-Type': 'multipart/form-data',
+        // #endif
+      },
+      success: (res) => {
+        try {
+          const parsed = JSON.parse(res.data)
+          if (parsed.code === 200 && parsed.data?.imgUrl) {
+            resolve(parsed.data.imgUrl)
+          }
+          else {
+            reject(new Error(parsed.msg || '头像上传失败'))
+          }
+        }
+        catch {
+          reject(new Error('解析上传响应失败'))
+        }
+      },
+      fail: err => reject(new Error(err.errMsg || '网络请求失败')),
+    })
+  })
+}
+
 // 保存个人资料
-const handleSave = () => {
+const handleSave = async () => {
   const nameVal = nickname.value.trim()
   if (!nameVal) {
-    uni.showToast({
-      title: '昵称不能为空',
-      icon: 'none',
-    })
+    uni.showToast({ title: '昵称不能为空', icon: 'none' })
     return
   }
+  if (saving.value) return
+  saving.value = true
 
-  userStore.updateProfile(nameVal, avatarUrl.value)
-  uni.showToast({
-    title: '资料更新成功',
-    icon: 'success',
-  })
+  try {
+    let finalAvatar = avatarUrl.value
 
-  setTimeout(() => {
-    uni.navigateBack()
-  }, 1000)
+    // 1. 若头像有变更，先上传临时文件到服务器获取永久 URL
+    if (avatarChanged.value) {
+      uni.showLoading({ title: '头像上传中...', mask: true })
+      finalAvatar = await uploadAvatar(avatarUrl.value)
+      uni.hideLoading()
+    }
+
+    // 2. 调用后端接口更新昵称等资料
+    await updateProfile({ nickName: nameVal })
+
+    // 3. 同步更新本地 store
+    userStore.updateProfile(nameVal, finalAvatar)
+
+    uni.showToast({ title: '资料更新成功', icon: 'success' })
+    setTimeout(() => uni.navigateBack(), 1000)
+  }
+  catch (err: any) {
+    uni.hideLoading()
+    uni.showToast({ title: err?.message || '保存失败，请重试', icon: 'none' })
+  }
+  finally {
+    saving.value = false
+  }
 }
 </script>
 
@@ -151,10 +213,12 @@ const handleSave = () => {
     <!-- 保存按钮 -->
     <view class="mt-6">
       <button
-        class="w-full h-12 rounded-2xl bg-[#22D386] text-white text-[15px] font-bold shadow-sm flex items-center justify-center active:opacity-90"
+        class="w-full h-12 rounded-2xl text-white text-[15px] font-bold shadow-sm flex items-center justify-center active:opacity-90"
+        :class="saving ? 'bg-[#22D386]/60' : 'bg-[#22D386]'"
+        :disabled="saving"
         @click="handleSave"
       >
-        保存个人资料
+        {{ saving ? '保存中...' : '保存个人资料' }}
       </button>
     </view>
   </view>

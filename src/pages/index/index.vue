@@ -27,7 +27,7 @@ import { useUserStore } from '@/store/user'
 const userStore = useUserStore()
 
 // 拦截路由携带的 tab 切换参数 (如从其它二级页面 reLaunch 回来时)，并在初始化时静默登录
-onLoad((options: any) => {
+onLoad((options: Record<string, string | undefined>) => {
   // 1. 无感静默登录：若检测为新用户，直接自动生成游客临时账号，无感开启服务
   if (userStore.userInfo.userId === -1) {
     userStore.loginSilently()

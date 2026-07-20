@@ -11,58 +11,9 @@ export interface Conversation {
   msgs: Message[]
 }
 
-export interface WorkItem {
-  id: string
-  title: string
-  color: string
-  prompt: string
-}
-
-export interface LedgerItem {
-  type: 'recharge' | 'gen'
-  title: string
-  amt: number
-  time: string
-}
-
-// 格式化当前时间为: 今天 HH:MM
-const getNowStr = () => {
-  const d = new Date()
-  const p = (n: number) => String(n).padStart(2, '0')
-  return `今天 ${p(d.getHours())}:${p(d.getMinutes())}`
-}
-
-export const useAppStateStore = defineStore(
-  'appState',
+export const useChatStore = defineStore(
+  'chat',
   () => {
-    // 全局充值弹窗状态
-    const showRecharge = ref(false)
-    const openRecharge = () => {
-      showRecharge.value = true
-    }
-    const closeRecharge = () => {
-      showRecharge.value = false
-    }
-
-    // 初始积分
-    const points = ref(2860)
-
-    // 账单流水
-    const ledger = ref<LedgerItem[]>([])
-
-    // 作品 ID 列表
-    const myWorks = ref<string[]>([])
-    const collected = ref<string[]>([])
-    const downloads = ref<string[]>([])
-
-    // 作品数据库（用于大图展示和以此生成）
-    const workMap = ref<Record<string, WorkItem>>({
-      p1: { id: 'p1', title: '插画', color: '#22D386', prompt: '梦幻森林插画，治愈绿色调' },
-      p2: { id: 'p2', title: '海报', color: '#FF9F43', prompt: '夏日沙滩复古海报，暖橙阳光' },
-      p3: { id: 'p3', title: '头像', color: '#2F86FF', prompt: '极简线条情侣头像，清爽蓝色' },
-      p4: { id: 'p4', title: '壁纸', color: '#41E09A', prompt: '治愈系星空宇航员壁纸，夜空绿' },
-    })
-
     // 对话列表
     const conversations = ref<Record<string, Conversation>>({
       '智能创作助手': {
@@ -121,69 +72,7 @@ export const useAppStateStore = defineStore(
       },
     })
 
-    // 充值操作
-    const recharge = (v: number) => {
-      points.value += v
-      ledger.value.push({
-        type: 'recharge',
-        title: '积分充值',
-        amt: v,
-        time: getNowStr(),
-      })
-    }
-
-    // 消费/扣减积分
-    const deductPoints = (v: number, title: string) => {
-      if (points.value >= v) {
-        points.value -= v
-        ledger.value.push({
-          type: 'gen',
-          title,
-          amt: -v,
-          time: getNowStr(),
-        })
-        return true
-      }
-      return false
-    }
-
-    // 切换收藏
-    const toggleCollect = (id: string) => {
-      const idx = collected.value.indexOf(id)
-      if (idx > -1) {
-        collected.value.splice(idx, 1)
-      } else {
-        collected.value.push(id)
-      }
-    }
-
-    // 保存/下载作品
-    const downloadWork = (id: string) => {
-      if (!downloads.value.includes(id)) {
-        downloads.value.push(id)
-      }
-    }
-
-    // 删除我生成的作品
-    const deleteWork = (id: string) => {
-      const idx = myWorks.value.indexOf(id)
-      if (idx > -1) {
-        myWorks.value.splice(idx, 1)
-      }
-      // 同时也从下载和收藏中清除
-      const cIdx = collected.value.indexOf(id)
-      if (cIdx > -1) collected.value.splice(cIdx, 1)
-      const dIdx = downloads.value.indexOf(id)
-      if (dIdx > -1) downloads.value.splice(dIdx, 1)
-    }
-
-    // 注册生成的新作品
-    const addGeneratedWork = (id: string, title: string, color: string, prompt: string) => {
-      workMap.value[id] = { id, title, color, prompt }
-      myWorks.value.push(id)
-    }
-
-        // 发送聊天消息，模拟自动回复
+    // 发送聊天消息，模拟自动回复
     const sendMessage = (convName: string, text: string) => {
       if (!conversations.value[convName]) {
         conversations.value[convName] = {
@@ -222,29 +111,12 @@ export const useAppStateStore = defineStore(
     }
 
     return {
-      showRecharge,
-      openRecharge,
-      closeRecharge,
-      points,
-      ledger,
-      myWorks,
-      collected,
-      downloads,
-      workMap,
       conversations,
-      recharge,
-      deductPoints,
-      toggleCollect,
-      downloadWork,
-      deleteWork,
-      addGeneratedWork,
       sendMessage,
       initConversation,
     }
   },
   {
-    persist: {
-      omit: ['showRecharge'], // 不持久化充值弹窗显隐状态
-    },
+    persist: true,
   },
 )

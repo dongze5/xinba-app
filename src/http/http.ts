@@ -30,9 +30,17 @@ export function http<T>(options: CustomRequestOptions) {
         if (isTokenExpired) {
           const tokenStore = useTokenStore()
           if (!isDoubleTokenMode) {
-            // 未启用双token策略，清理用户信息，跳转到登录页
-            tokenStore.logout()
-            toLoginPage()
+            // 防止已退出登录的请求再次触发 logout 死循环
+            if (!tokenStore.hasLogin) {
+              return reject(res)
+            }
+            // 单token模式：清理用户信息和本地缓存
+            await tokenStore.logout()
+            // 小程序无独立登录页，仅提示用户，页面状态由响应式数据自动刷新为未登录
+            uni.showToast({
+              title: '登录已失效',
+              icon: 'none',
+            })
             return reject(res)
           }
 
@@ -96,9 +104,24 @@ export function http<T>(options: CustomRequestOptions) {
         if (res.statusCode >= 200 && res.statusCode < 300) {
           // 处理业务逻辑错误
           if (code !== ResultEnum.Success0 && code !== ResultEnum.Success200) {
+            const errorMsg = responseData.msg || responseData.message || '请求错误'
+
+            // 全局检测账号禁用/停用：强制登出并清理本地状态
+            const isAccountDisabled = /禁用|停用|封禁|冻结|disable|banned|frozen/i.test(errorMsg)
+            if (isAccountDisabled) {
+              const tokenStore = useTokenStore()
+              await tokenStore.logout()
+              uni.showModal({
+                title: '提示',
+                content: errorMsg,
+                showCancel: false,
+              })
+              return reject(responseData.data)
+            }
+
             uni.showToast({
               icon: 'none',
-              title: responseData.msg || responseData.message || '请求错误',
+              title: errorMsg,
             })
             return reject(responseData.data)
           }

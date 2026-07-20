@@ -4,14 +4,29 @@ import { getCurrentInstance, onMounted, onUnmounted } from 'vue'
 import { navigateToInterceptor } from '@/router/interceptor'
 import { tabbarStore } from '@/tabbar/store'
 import { permission } from '@/router/permission'
+import { useTokenStore } from '@/store/token'
 
 const { proxy } = (getCurrentInstance() || {}) as any
 const router = proxy?.$router
 
 router && permission.install(router)
 
-onLaunch((options) => {
+onLaunch(async (options) => {
   console.log('App.vue onLaunch', options)
+  
+  // #ifdef MP-WEIXIN
+  const tokenStore = useTokenStore()
+  if (!tokenStore.hasLogin) {
+    console.log('--- 检测到微信小程序未登录，执行默认授权静默登录 ---')
+    try {
+      await tokenStore.wxLogin()
+      console.log('--- 微信小程序静默授权登录成功 ---')
+    }
+    catch (error) {
+      console.error('微信小程序默认授权登录失败', error)
+    }
+  }
+  // #endif
 })
 onShow((options) => {
   console.log('App.vue onShow', options)

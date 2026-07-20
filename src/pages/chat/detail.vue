@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref, computed, watch, nextTick } from 'vue'
-import { useAppStateStore } from '@/store/appState'
+import { useChatStore } from '@/store/chat'
 import { storeToRefs } from 'pinia'
 
 defineOptions({
@@ -13,8 +13,8 @@ definePage({
   },
 })
 
-const appState = useAppStateStore()
-const { conversations } = storeToRefs(appState)
+const chatStore = useChatStore()
+const { conversations } = storeToRefs(chatStore)
 
 // 路由参数
 const chatName = ref('智能聊天')
@@ -44,7 +44,7 @@ watch(
 )
 
 // 加载会话名称
-onLoad((options: any) => {
+onLoad((options: Record<string, string | undefined>) => {
   if (options && options.name) {
     chatName.value = decodeURIComponent(options.name)
     uni.setNavigationBarTitle({
@@ -58,13 +58,13 @@ const handleSend = () => {
   const text = inputValue.value.trim()
   if (!text) return
 
-  appState.sendMessage(chatName.value, text)
+  chatStore.sendMessage(chatName.value, text)
   inputValue.value = ''
 }
 
 // 点击推荐芯片
 const clickChip = (txt: string) => {
-  appState.sendMessage(chatName.value, txt)
+  chatStore.sendMessage(chatName.value, txt)
 }
 </script>
 

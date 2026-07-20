@@ -1,4 +1,4 @@
-import type { IAuthLoginRes, ICaptcha, IDoubleTokenRes, IUpdateInfo, IUpdatePassword, IUserInfoRes } from './types/login'
+import type { IAuthLoginRes, ICaptcha, IDoubleTokenRes, IUpdatePassword, IUpdateProfile, IUserInfoRes } from './types/login'
 import { http } from '@/http/http'
 
 /**
@@ -44,14 +44,14 @@ export function getUserInfo() {
  * 退出登录
  */
 export function logout() {
-  return http.get<void>('/auth/logout')
+  return http.post<void>('/auth/logout')
 }
 
 /**
- * 修改用户信息
+ * 修改用户资料
  */
-export function updateInfo(data: IUpdateInfo) {
-  return http.post('/user/updateInfo', data)
+export function updateProfile(data: IUpdateProfile) {
+  return http.put<void>('/system/user/profile', data)
 }
 
 /**
@@ -82,4 +82,12 @@ export function getWxCode() {
  */
 export function wxLogin(data: { code: string }) {
   return http.post<IAuthLoginRes>('/auth/wxLogin', data)
+}
+
+/**
+ * 绑定微信手机号
+ * @param code 微信 getPhoneNumber 授权回调返回的 code
+ */
+export function bindPhone(code: string) {
+  return http.post<void>('/user/bindPhone', { code })
 }

@@ -10,6 +10,12 @@ const baseUrl = getEnvBaseUrl()
 const httpInterceptor = {
   // 拦截前触发
   invoke(options: CustomRequestOptions) {
+    // 自动将 clientid 塞入 query 参数中，通过 URL 传递给后端以绕过小程序 Header 过滤
+    options.query = {
+      ...options.query,
+      clientid: '445f3912cb13164713f05689d0c50def',
+    }
+
     // 如果您使用了alova，则请把下面的代码放开注释
     // alova 执行流程：alova beforeRequest --> 本拦截器 --> alova responded
     // return options
