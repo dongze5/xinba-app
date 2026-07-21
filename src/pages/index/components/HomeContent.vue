@@ -72,10 +72,11 @@ const switchTabIdx = (idx: number) => {
   tabbarStore.setCurIdx(idx)
 }
 
-// 进入特定聊天
-const goChat = (name: string) => {
+// 进入特定聊天（创建新会话）
+const goChat = async (name: string) => {
+  const sessionId = await chatStore.initConversation(name)
   uni.navigateTo({
-    url: `/pages/chat/detail?name=${encodeURIComponent(name)}`,
+    url: `/pages/chat/detail?sessionId=${encodeURIComponent(sessionId)}&name=${encodeURIComponent(name)}`,
   })
 }
 
@@ -88,18 +89,15 @@ const viewWork = (id: string) => {
 
 // 动态获取真正互动过的最近会话列表 (至多3条)
 const recentChats = computed(() => {
-  return Object.keys(conversations.value)
-    .map(name => {
-      const chat = conversations.value[name]
-      const lastMsg = chat.msgs && chat.msgs.length > 0 ? chat.msgs[chat.msgs.length - 1] : null
-
-      // 必须有用户主动发送的消息才算聊过 (m === true)
-      const hasInteractive = chat.msgs && chat.msgs.some(msg => msg.m === true)
-
-      const color = getChatColor(name)
+  return Object.values(conversations.value)
+    .map((conv) => {
+      const lastMsg = conv.msgs && conv.msgs.length > 0 ? conv.msgs[conv.msgs.length - 1] : null
+      const hasInteractive = conv.msgs && conv.msgs.some(msg => msg.m === true)
+      const color = getChatColor(conv.name)
 
       return {
-        name,
+        sessionId: conv.sessionId,
+        name: conv.name,
         color,
         intro: lastMsg ? lastMsg.t : '',
         time: '刚刚',
@@ -107,6 +105,7 @@ const recentChats = computed(() => {
       }
     })
     .filter(chat => chat.hasInteractive)
+    .reverse()
     .slice(0, 3)
 })
 </script>
@@ -191,9 +190,9 @@ const recentChats = computed(() => {
         <template v-if="recentChats.length > 0">
           <view
             v-for="chat in recentChats"
-            :key="chat.name"
+            :key="chat.sessionId"
             class="flex items-center gap-3 rounded-2xl bg-white p-4 shadow-sm active:bg-gray-50 cursor-pointer"
-            @click="goChat(chat.name)"
+            @click="uni.navigateTo({ url: `/pages/chat/detail?sessionId=${encodeURIComponent(chat.sessionId)}&name=${encodeURIComponent(chat.name)}` })"
           >
             <view
               class="h-12 w-12 flex items-center justify-center rounded-full text-lg font-bold text-white flex-shrink-0"
